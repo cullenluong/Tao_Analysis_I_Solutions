@@ -479,10 +479,12 @@ theorem Nat.zero_le (a:Nat) : 0 ≤ a := by
 lemma Nat.zero_e_0:zero=0:=by rfl
 
 theorem Nat.gt_add {a b n:Nat} (h: a > b) : a+n > b := by
-  induction' n with m h2
-  · rw[zero_e_0,add_zero]
+  induction n with
+  | zero =>
+    rw[zero_e_0,add_zero]
     exact h
-  · rw[gt_iff_lt,lt_iff] at h2
+  | succ n h2 =>
+    rw[gt_iff_lt,lt_iff] at h2
     rcases h2 with ⟨h3,h4⟩
     rcases h3 with ⟨d,h5⟩
     rw[gt_iff_lt,lt_iff]
@@ -841,15 +843,16 @@ theorem Nat.induction_from {n:Nat} {P: Nat → Prop} (hind: ∀ m, P m → P (m+
     P n → ∀ m, m ≥ n → P m := by
   intro pn m hmn
 
-  induction' m with  k hk
-  · specialize hind (0)
+  induction m with
+  | zero =>
+    specialize hind (0)
     rw[zero_e_0]
     rw[zero_e_0] at hmn
     rw[ge_iff_le] at hmn
     apply le_zero  at hmn
     rw[hmn] at pn
     exact pn
-  · --the only way to obtain p(k++) is k >= n is true (can apply hind to hk)
+  | succ k hn => --the only way to obtain p(k++) is k >= n is true (can apply hind to hk)
     -- or n == k++ and exact P n,
     --lt_succ_iff
     --
@@ -857,7 +860,7 @@ theorem Nat.induction_from {n:Nat} {P: Nat → Prop} (hind: ∀ m, P m → P (m+
     cases hmn with
     | inl hp =>
     · rw[lt_succ_iff,← ge_iff_le] at hp
-      apply hk at hp
+      apply hn at hp
       specialize hind k
       apply hind at hp
       exact hp
