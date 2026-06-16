@@ -171,7 +171,12 @@ theorem SetTheory.Set.eq_empty_iff_forall_notMem {X:Set} : X = ∅ ↔ (∀ x, x
 theorem SetTheory.Set.empty_unique : ∃! (X:Set), ∀ x, x ∉ X := by
   -- prove that there exists a unique set X, such that for all objects x, x is not a member of X
   refine ⟨(∅ : Set), ?hEmpty, ?uniq⟩
-    --propose the empty set,
+    --propose the empty set, we then have new goals hempty, and uniq
+  · intro x
+    apply not_mem_empty
+  · intro Y hY
+    ext x
+    simp_all only [not_mem_empty]
 
 
 
@@ -236,8 +241,21 @@ theorem SetTheory.Set.mem_triple (x a b c:Object) : x ∈ ({a,b,c}:Set) ↔ (x =
   simp [Insert.insert, mem_union, mem_singleton]
 
 /-- Remark 3.1.9 -/
-theorem SetTheory.Set.singleton_uniq (a:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a := by sorry
+theorem SetTheory.Set.singleton_uniq (a:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a := by
+-- refine Exists.intro ?_ ?_
+-- case refine_1
+-- inst✝ : SetTheory
+-- a : Object
+-- ⊢ Set
+-- case refine_2
+-- inst✝ : SetTheory
+-- a : Object
+-- ⊢ (fun X ↦ ∀ (x : Object), x ∈ X ↔ x = a) ?refine_1 ∧
+--   ∀ (y : Set), (fun X ↦ ∀ (x : Object), x ∈ X ↔ x = a) y → y = ?refine_1
 
+  refine ⟨({a} : Set), ?hX, ?uniq
+
+  ⟩
 /-- Remark 3.1.9 -/
 theorem SetTheory.Set.pair_uniq (a b:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a ∨ x = b := by sorry
 
