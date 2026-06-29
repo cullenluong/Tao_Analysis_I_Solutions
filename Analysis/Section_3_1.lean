@@ -242,35 +242,84 @@ theorem SetTheory.Set.mem_triple (x a b c:Object) : x ∈ ({a,b,c}:Set) ↔ (x =
 
 /-- Remark 3.1.9 -/
 theorem SetTheory.Set.singleton_uniq (a:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a := by
--- refine Exists.intro ?_ ?_
--- case refine_1
--- inst✝ : SetTheory
--- a : Object
--- ⊢ Set
--- case refine_2
--- inst✝ : SetTheory
--- a : Object
--- ⊢ (fun X ↦ ∀ (x : Object), x ∈ X ↔ x = a) ?refine_1 ∧
---   ∀ (y : Set), (fun X ↦ ∀ (x : Object), x ∈ X ↔ x = a) y → y = ?refine_1
+  --For some object a, There exists a unique set X such that for any object x that is a member of X iff x = a
+  -- Existence: take `X = {a}`.
+  refine ⟨({a} : Set), ?hX, ?uniq⟩
+  · -- Show `{a}` has exactly the elements equal to `a`.
+    intro x
+    simp[(SetTheory.Set.mem_singleton x a)]
+  · -- Uniqueness: any `Y` with the same membership characterization equals `{a}` by extensionality.
+    intro Y hY
+    apply SetTheory.Set.ext
+    intro x
+    have hy : x ∈ Y ↔ x = a := hY x
+    have hx : x ∈ ({a} : Set) ↔ x = a := SetTheory.Set.mem_singleton x a
+    -- Both sides characterize membership by `x = a`, so the sets are extensionally equal.
+    exact hy.trans hx.symm
 
-  refine ⟨({a} : Set), ?hX, ?uniq
 
-  ⟩
+
+
 /-- Remark 3.1.9 -/
-theorem SetTheory.Set.pair_uniq (a b:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a ∨ x = b := by sorry
+theorem SetTheory.Set.pair_uniq (a b:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a ∨ x = b := by
+  apply existsUnique_of_exists_of_unique
+  · use {a, b}
+    intro x
+    apply mem_pair
+  intro e1 e2 h1 h2
+  ext x
+  simp [h1 x, h2 x]
 
 /-- Remark 3.1.9 -/
-theorem SetTheory.Set.pair_comm (a b:Object) : ({a,b}:Set) = {b,a} := by sorry
+theorem SetTheory.Set.pair_comm (a b:Object) : ({a,b}:Set) = {b,a} := by
+  ext x
+  simp_all only [mem_insert, mem_singleton]
+  apply Iff.intro
+  · intro hxab
+    cases hxab with
+    | inl hxa =>
+      subst hxa
+      simp_all only [or_true]
+    | inr hxb =>
+      subst hxb
+      simp_all only [true_or]
+  · intro hxba
+    cases hxba with
+    | inl hxb =>
+      subst hxb
+      simp_all only [or_true]
+    | inr hxa =>
+      subst hxa
+      simp_all only [true_or]
 
 /-- Remark 3.1.9 -/
 @[simp]
 theorem SetTheory.Set.pair_self (a:Object) : ({a,a}:Set) = {a} := by
-  sorry
+  ext x
+  simp_all only [mem_insert, mem_singleton, or_self]
 
 /-- Exercise 3.1.1 -/
 theorem SetTheory.Set.pair_eq_pair {a b c d:Object} (h: ({a,b}:Set) = {c,d}) :
     a = c ∧ b = d ∨ a = d ∧ b = c := by
-  sorry
+  simp only [Set.ext_iff] at h
+  simp_all only [mem_insert, mem_singleton]
+  have hacd : a = c ∨ a = d := by
+    specialize h a
+    simp only [true_or, true_iff] at h
+    exact h
+  have hbcd : b = c ∨ b = d := by
+    specialize h b
+    simp only [ or_true, true_iff] at h
+    exact h
+  have hcab : c = a ∨ c = b := by
+    specialize h c
+    simp only [true_or, iff_true] at h
+    exact h
+  have hdab : d = a ∨ d = b := by
+    specialize h d
+    simp only [ or_true, iff_true] at h
+    exact h
+  aesop?
 
 abbrev SetTheory.Set.empty : Set := ∅
 abbrev SetTheory.Set.singleton_empty : Set := {(empty: Object)}
@@ -278,34 +327,63 @@ abbrev SetTheory.Set.pair_empty : Set := {(empty: Object), (singleton_empty: Obj
 
 /-- Exercise 3.1.2 -/
 theorem SetTheory.Set.emptyset_neq_singleton : empty ≠ singleton_empty := by
-  sorry
+  simp only [empty,singleton_empty]
+  symm
+  simp[Set.ext_iff]
 
 /-- Exercise 3.1.2 -/
-theorem SetTheory.Set.emptyset_neq_pair : empty ≠ pair_empty := by sorry
+theorem SetTheory.Set.emptyset_neq_pair : empty ≠ pair_empty := by
+  simp[empty,pair_empty]
+  push_neg
+  symm
+  simp[Set.ext_iff,not_mem_empty]
+  apply Exists.intro
+  · intro a
+    rfl
 
 /-- Exercise 3.1.2 -/
 theorem SetTheory.Set.singleton_empty_neq_pair : singleton_empty ≠ pair_empty := by
-  sorry
+  simp[empty,singleton_empty,pair_empty]
+  simp[Set.ext_iff]
 
 /--
   Remark 3.1.11.
   (These results can be proven either by a direct rewrite, or by using extensionality.)
 -/
-theorem SetTheory.Set.union_congr_left (A A' B:Set) (h: A = A') : A ∪ B = A' ∪ B := by sorry
-
+theorem SetTheory.Set.union_congr_left (A A' B:Set) (h: A = A') : A ∪ B = A' ∪ B := by
+  ext x
+  simp[mem_union]
+  subst h
+  simp_all only
 /--
   Remark 3.1.11.
   (These results can be proven either by a direct rewrite, or by using extensionality.)
 -/
-theorem SetTheory.Set.union_congr_right (A B B':Set) (h: B = B') : A ∪ B = A ∪ B' := by sorry
+theorem SetTheory.Set.union_congr_right (A B B':Set) (h: B = B') : A ∪ B = A ∪ B' := by
+  ext x
+  simp only [mem_union]
+  subst h
+  simp_all only
 
 /-- Lemma 3.1.12 (Basic properties of unions) / Exercise 3.1.3 -/
 theorem SetTheory.Set.singleton_union_singleton (a b:Object) :
     ({a}:Set) ∪ ({b}:Set) = {a,b} := by
-  sorry
+  ext x
+  simp only [mem_union, mem_singleton, mem_insert]
 
 /-- Lemma 3.1.12 (Basic properties of unions) / Exercise 3.1.3 -/
-theorem SetTheory.Set.union_comm (A B:Set) : A ∪ B = B ∪ A := by sorry
+theorem SetTheory.Set.union_comm (A B:Set) : A ∪ B = B ∪ A := by
+  ext x
+  simp[mem_union]
+  apply Iff.intro
+  · intro a
+    cases a with
+    | inl h => simp_all only [or_true]
+    | inr h_1 => simp_all only [true_or]
+  · intro a
+    cases a with
+    | inl h => simp_all only [or_true]
+    | inr h_1 => simp_all only [true_or]
 
 /-- Lemma 3.1.12 (Basic properties of unions) / Exercise 3.1.3 -/
 theorem SetTheory.Set.union_assoc (A B C:Set) : (A ∪ B) ∪ C = A ∪ (B ∪ C) := by
@@ -321,22 +399,32 @@ theorem SetTheory.Set.union_assoc (A B C:Set) : (A ∪ B) ∪ C = A ∪ (B ∪ C
       rw [mem_union]; tauto
     have : x ∈ B ∪ C := by rw [mem_union]; tauto
     rw [mem_union]; tauto
-  sorry
+  intro h
+  simp_all[mem_union]
+  cases h with
+  | inl h_1 => simp_all only [true_or]
+  | inr h_2 =>
+    cases h_2 with
+    | inl h => simp_all only [or_true, true_or]
+    | inr h_1 => simp_all only [or_true]
 
 /-- Proposition 3.1.27(c) -/
 @[simp]
 theorem SetTheory.Set.union_self (A:Set) : A ∪ A = A := by
-  sorry
+  ext x
+  simp only [mem_union, or_self]
 
 /-- Proposition 3.1.27(a) -/
 @[simp]
 theorem SetTheory.Set.union_empty (A:Set) : A ∪ ∅ = A := by
-  sorry
+  ext x
+  simp only [mem_union, not_mem_empty, or_false]
 
 /-- Proposition 3.1.27(a) -/
 @[simp]
 theorem SetTheory.Set.empty_union (A:Set) : ∅ ∪ A = A := by
-  sorry
+  ext x
+  simp only [mem_union, not_mem_empty, false_or]
 
 theorem SetTheory.Set.triple_eq (a b c:Object) : {a,b,c} = ({a}:Set) ∪ {b,c} := by
   rfl
